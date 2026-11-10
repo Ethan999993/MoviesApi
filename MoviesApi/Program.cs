@@ -1,8 +1,19 @@
+using Microsoft.Data.SqlClient;
+using System.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddScoped<IDbConnection>(sp => new SqlConnection(builder.Configuration
+      .GetConnectionString("MoviesContext")));
+
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
