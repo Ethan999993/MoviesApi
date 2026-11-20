@@ -1,4 +1,6 @@
-﻿namespace MoviesApi.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace MoviesApi.DTOs
 {
     public class Movie
     {
@@ -23,6 +25,9 @@
 
         public AudienceRating AudienceRating { get; set; } = null!;
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+
+        public List<Review> Reviews { get; set; } = null!;
 
 
 

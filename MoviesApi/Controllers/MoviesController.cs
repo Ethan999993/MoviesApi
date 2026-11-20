@@ -14,12 +14,26 @@ namespace MoviesApi.Controllers
     {
 
         private readonly IDbConnection _db;
-       public MoviesController(IDbConnection db)
+        public MoviesController(IDbConnection db)
         {
 
-            _db = db; 
+            _db = db;
 
         }
+
+       
+
+
+        
+
+        //@select m.*, g.*, a.*, r.*, u.*
+        //        from Movie m
+        //        Inner JOIN Genre g  On m.GenreId = g.Id
+        //        Inner JOIN AudienceRating a  On m.AudienceRatingId = a.Id
+        //        left outer join CriticReview r on m.id = r.MovieId
+        //        left outer join UserSnapshot u on r.CreatedBy = u.UserId
+        //where m.id = 6004
+
 
 
         // GET api/movies
@@ -38,7 +52,7 @@ namespace MoviesApi.Controllers
 
 
             //fetch all movies from databse  <table table 2 output>
-            var movies = await _db.QueryAsync<Movie,Genre,AudienceRating,Movie>(
+            var movies = await _db.QueryAsync<Movie, Genre, AudienceRating, Movie>(
                 sql,
                 (movie, genre, AudienceRating) =>
                 {
@@ -53,6 +67,57 @@ namespace MoviesApi.Controllers
 
         }
 
+        // get /api/movies/id
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMovieById(int id)
+        {
+            //fetch all movies from databse 
+            var sql = @"select m.*, g.*, a.*, r.*, u.*
+                from Movie m
+                Inner JOIN Genre g  On m.GenreId = g.Id
+                Inner JOIN AudienceRating a  On m.AudienceRatingId = a.Id
+                left outer join CriticReview r on m.id = r.MovieId
+                left outer join UserSnapshot u on r.CreatedBy = u.UserId
+                Where m.id = @Id";
+
+                Movie? movie = null;
+            //fetch all movies from databse  <table table 2 output>
+            await _db.QueryAsync<Movie, Genre, AudienceRating, Review, User, Movie>(
+                sql,
+                (m, g, a, r, u) =>
+                {
+                    if (movie == null)
+                    {
+                        movie = m;
+                        movie.Genre = g;
+                        movie.AudienceRating = a;
+                        movie.Reviews = new List<Review>(); // initialize an empty list
+                    }
+
+                    if (r != null)
+                    {
+                        r.User = u;
+                        movie.Reviews.Add(r);
+                    }
+
+                    return movie;
+                },
+                new {Id = id},
+                splitOn:"Id,Id,Id,UserId"
+
+                );
+
+            return Ok(movie);
 
         }
+
+
+
+
+
+
+
+
+    }
 }
